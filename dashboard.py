@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
+import textwrap
 
 # =========================
 # 🔹 APP
@@ -34,7 +35,16 @@ def load_data():
             df[col] = df[col].fillna("SEM INFORMAÇÃO").astype(str).str.upper().str.strip()
     return df
 
+# Função para quebrar a linha a cada 30 caracteres
+def quebrar_texto(df):
+    # Aplica a quebra de linha na coluna SITUAÇÃO
+    df['SITUAÇÃO_FORMATADA'] = df['SITUAÇÃO'].apply(
+        lambda x: "<br>".join(textwrap.wrap(str(x), width=40))
+    )
+    return df
+
 df = load_data()
+df = quebrar_texto(df)
 
 # =========================
 # 🔹 PALETTE
@@ -89,10 +99,17 @@ app.layout = html.Div(style={
 
     # ── Header ────────────────────────────────────────────────────────────
     html.Div(style={
-        "position": "relative",
-        "overflow": "hidden",
-        "background": "linear-gradient(135deg, #0B2545 0%, #13315C 40%, #1B4F72 100%)",
-        "boxShadow": "0 4px 24px rgba(0,0,0,0.35)",
+        "position": "sticky",
+        "top": "0",
+        "zIndex": "1000",
+        "width": "100%",
+        # 1. A cor de fundo precisa ter transparência (RGBA) para o blur aparecer
+        "background": "rgba(11, 37, 69, 0.7)", 
+        # 2. O 'backdropFilter' cria o efeito de desfoque forte
+        "backdropFilter": "blur(15px) saturate(150%)",
+        "-webkit-backdropFilter": "blur(15px) saturate(150%)", # Suporte para Safari
+        # 3. Estética adicional
+        "borderBottom": "1px solid rgba(255, 255, 255, 0.1)",
     }, children=[
 
         # Decorative background circles
@@ -421,7 +438,7 @@ def update_dashboard(estado, comunidade):
             group["COMUNIDADE"],
             group["MUNICIPIO"],
             group["ESTADO"],
-            group["SITUAÇÃO"],
+            group["SITUAÇÃO_FORMATADA"],
             group["FUNCIONANDO"],
         ))
         traces.append(go.Scattermap(
