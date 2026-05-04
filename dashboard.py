@@ -30,7 +30,7 @@ def load_data():
     df = pd.read_excel("Salta_Z_planilha_tratada.xlsx")
     df.rename(columns={"LAT": "lat", "LON": "lon"}, inplace=True)
     df = df.dropna(subset=["lat", "lon"])
-    for col in ["FUNCIONANDO", "SITUAÇÃO", "ESTADO", "COMUNIDADE", "MUNICIPIO"]:
+    for col in ["FUNCIONANDO", "SITUAÇÃO", "ESTADO", "COMUNIDADE", "MUNICIPIO", "Geolocalizador"]:
         if col in df.columns:
             df[col] = df[col].fillna("SEM INFORMAÇÃO").astype(str).str.upper().str.strip()
     return df
@@ -436,6 +436,7 @@ def update_dashboard(estado, comunidade):
         color = COLOR_MAP.get(func_val, "#626567")
         customdata = list(zip(
             group["COMUNIDADE"],
+            group["Geolocalizador"],
             group["MUNICIPIO"],
             group["ESTADO"],
             group["SITUAÇÃO_FORMATADA"],
@@ -450,10 +451,11 @@ def update_dashboard(estado, comunidade):
             customdata=customdata,
             hovertemplate=(
                 "<b>%{customdata[0]}</b><br>"
-                "Município: %{customdata[1]}<br>"
-                "Estado: %{customdata[2]}<br>"
-                "Situação: %{customdata[3]}<br>"
-                "Funcionando: %{customdata[4]}"
+                "Localização: %{customdata[1]}<br>"
+                "Município: %{customdata[2]}<br>"
+                "Estado: %{customdata[3]}<br>"
+                "Situação: %{customdata[4]}<br>"
+                "Funcionando: %{customdata[5]}"
                 "<extra></extra>"
             ),
         ))
