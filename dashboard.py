@@ -221,51 +221,65 @@ app.layout = html.Div(style={
     html.Div(style={"padding": "28px 36px"}, children=[
 
         # ── Filters ───────────────────────────────────────────────────────
-        html.Div(style={
-            "display": "flex",
-            "gap": "20px",
-            "flexWrap": "wrap",
-            "background": "#FFFFFF",
-            "borderRadius": "12px",
-            "padding": "20px 24px",
-            "marginBottom": "22px",
-            "boxShadow": "0 1px 6px rgba(0,0,0,0.07)",
-            "borderLeft": "4px solid #1A5276",
-            "alignItems": "flex-end",
-        }, children=[
+html.Div(style={
+    "display": "flex",
+    "gap": "20px",
+    "flexWrap": "wrap",
+    "background": "#FFFFFF",
+    "borderRadius": "12px",
+    "padding": "20px 24px",
+    "marginBottom": "22px",
+    "boxShadow": "0 1px 6px rgba(0,0,0,0.07)",
+    "borderLeft": "4px solid #1A5276",
+    "alignItems": "flex-end",
+}, children=[
 
-            html.Div([
-                html.Label("ESTADO", style=_label_style()),
-                dcc.Dropdown(
-                    id="filter-estado",
-                    options=[{"label": "Todos os estados", "value": "TODOS"}] +
-                            [{"label": e, "value": e} for e in sorted(df["ESTADO"].unique())],
-                    value="TODOS",
-                    clearable=False,
-                    style=_dropdown_style(),
-                )
-            ], style={"flex": "1", "minWidth": "200px"}),
+    # ── ESTADO ─────────────────────────────
+        html.Div([
+            html.Label("ESTADO", style=_label_style()),
+            dcc.Dropdown(
+                id="filter-estado",
+                options=[{"label": "Todos os estados", "value": "TODOS"}] +
+                        [{"label": e, "value": e} for e in sorted(df["ESTADO"].unique())],
+                value="TODOS",
+                clearable=False,
+                style=_dropdown_style(),
+            )
+        ], style={"flex": "1", "minWidth": "200px"}),
 
-            html.Div([
-                html.Label("COMUNIDADE", style=_label_style()),
-                dcc.Dropdown(
-                    id="filter-comunidade",
-                    options=[{"label": "Todas as comunidades", "value": "TODOS"}],
-                    value="TODOS",
-                    clearable=False,
-                    style=_dropdown_style(),
-                )
-            ], style={"flex": "2", "minWidth": "260px"}),
+    # ── MUNICÍPIO ──────────────────────────
+        html.Div([
+            html.Label("MUNICÍPIO", style=_label_style()),
+            dcc.Dropdown(
+                id="filter-municipio",
+                options=[{"label": "Todos os municípios", "value": "TODOS"}],
+                value="TODOS",
+                clearable=False,
+                style=_dropdown_style(),
+            )
+        ], style={"flex": "1", "minWidth": "220px"}),
 
-        ]),
+    # ── COMUNIDADE ─────────────────────────
+        html.Div([
+            html.Label("COMUNIDADE", style=_label_style()),
+            dcc.Dropdown(
+                id="filter-comunidade",
+                options=[{"label": "Todas as comunidades", "value": "TODOS"}],
+                value="TODOS",
+                clearable=False,
+                style=_dropdown_style(),
+            )
+        ], style={"flex": "2", "minWidth": "260px"}),
 
-        # ── Stat Cards ────────────────────────────────────────────────────
-        html.Div(id="stat-cards", style={
-            "display": "flex",
-            "gap": "16px",
-            "flexWrap": "wrap",
-            "marginBottom": "22px",
-        }),
+    ])
+
+            # ── Stat Cards ────────────────────────────────────────────────────
+            html.Div(id="stat-cards", style={
+                "display": "flex",
+                "gap": "16px",
+                "flexWrap": "wrap",
+                "marginBottom": "22px",
+            }),
 
         # ── Map Panel ─────────────────────────────────────────────────────
         html.Div(style={
@@ -346,11 +360,21 @@ app.layout = html.Div(style={
     Output("filter-comunidade", "options"),
     Output("filter-comunidade", "value"),
     Input("filter-estado", "value"),
+    Input("filter-municipio", "value"),
 )
-def update_comunidades(estado):
-    df_t = df if estado == "TODOS" else df[df["ESTADO"] == estado]
+def update_comunidades(estado, municipio):
+    
+    df_t = df.copy()
+
+    if estado != "TODOS":
+        df_t = df_t[df_t["ESTADO"] == estado]
+
+    if municipio != "TODOS":
+        df_t = df_t[df_t["MUNICIPIO"] == municipio]
+
     opts = [{"label": "Todas as comunidades", "value": "TODOS"}] + \
            [{"label": c, "value": c} for c in sorted(df_t["COMUNIDADE"].unique())]
+
     return opts, "TODOS"
 
 
@@ -360,6 +384,7 @@ def update_comunidades(estado):
     Output("map-subtitle", "children"),
     Input("filter-estado", "value"),
     Input("filter-comunidade", "value"),
+    Input("filter-municipio", "value"),
 )
 def update_dashboard(estado, comunidade, municipio):
 
