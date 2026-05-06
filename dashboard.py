@@ -1,6 +1,7 @@
 import base64
 import os
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
 
@@ -26,7 +27,7 @@ if os.path.exists(LOGO_PATH):
 # 🔹 LOAD & CLEAN
 # =========================
 def load_data():
-    df = pd.read_excel("Salta_Z_planilha_tratada.xlsx")
+    df = pd.read_excel("App\Salta_Z_planilha_tratada.xlsx")
     df.rename(columns={"LAT": "lat", "LON": "lon"}, inplace=True)
     df = df.dropna(subset=["lat", "lon"])
     for col in ["FUNCIONANDO", "SITUAÇÃO", "ESTADO", "COMUNIDADE", "MUNICIPIO"]:
@@ -35,6 +36,17 @@ def load_data():
     return df
 
 df = load_data()
+
+
+# =========================
+# 🔹 Adicionar Jitter
+# =========================
+
+def add_jitter(series, intensity=0.005):
+    return series + np.random.uniform(-intensity, intensity, size=len(series))
+
+df['lat_j'] = add_jitter(df['lat'])
+df['lon_j'] = add_jitter(df['lon'])
 
 # =========================
 # 🔹 PALETTE
@@ -425,8 +437,8 @@ def update_dashboard(estado, comunidade):
             group["FUNCIONANDO"],
         ))
         traces.append(go.Scattermap(
-            lat=group["lat"],
-            lon=group["lon"],
+            lat=group["lat_j"],
+            lon=group["lon_j"],
             mode="markers",
             name=func_val,
             marker=dict(size=9, color=color, opacity=0.85, allowoverlap=True),
@@ -443,11 +455,11 @@ def update_dashboard(estado, comunidade):
 
     # ── Zoom ────────────────────────────────────
     if total > 0:
-        lat_c = df_f["lat"].mean()
-        lon_c = df_f["lon"].mean()
+        lat_c = df_f["lat_j"].mean()
+        lon_c = df_f["lon_j"].mean()
         span = max(
-            df_f["lat"].max() - df_f["lat"].min(),
-            df_f["lon"].max() - df_f["lon"].min(),
+            df_f["lat_j"].max() - df_f["lat_j"].min(),
+            df_f["lon_j"].max() - df_f["lon_j"].min(),
         )
         zoom = max(2, min(12, 7 - (span / 5)))
     else:
