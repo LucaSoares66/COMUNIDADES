@@ -361,7 +361,7 @@ def update_comunidades(estado):
     Input("filter-estado", "value"),
     Input("filter-comunidade", "value"),
 )
-def update_dashboard(estado, comunidade):
+def update_dashboard(estado, comunidade, municipio):
 
     # ── Apply filters ───────────────────────────
     df_f = df.copy()
@@ -369,6 +369,8 @@ def update_dashboard(estado, comunidade):
         df_f = df_f[df_f["ESTADO"] == estado]
     if comunidade != "TODOS":
         df_f = df_f[df_f["COMUNIDADE"] == comunidade]
+    if municipio != "TODOS":
+        df_f = df_f[df_f["MUNICIPIO"] == municipio] 
 
     total = len(df_f)
     subtitle = f"— {total:,} ponto{'s' if total != 1 else ''} exibido{'s' if total != 1 else ''}"
