@@ -468,7 +468,7 @@ def update_dashboard(estado, comunidade):
     fig = go.Figure(traces)
     fig.update_layout(
         map=dict(
-            style="openstreetmap",
+            style="open-street-map",
             center=dict(lat=lat_c, lon=lon_c),
             zoom=zoom,
         ),
