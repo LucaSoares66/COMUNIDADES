@@ -27,7 +27,7 @@ if os.path.exists(LOGO_PATH):
 # 🔹 LOAD & CLEAN
 # =========================
 def load_data():
-    df = pd.read_excel("App\Salta_Z_planilha_tratada.xlsx")
+    df = pd.read_excel("Salta_Z_planilha_tratada.xlsx")
     df.rename(columns={"LAT": "lat", "LON": "lon"}, inplace=True)
     df = df.dropna(subset=["lat", "lon"])
     for col in ["FUNCIONANDO", "SITUAÇÃO", "ESTADO", "COMUNIDADE", "MUNICIPIO"]:
