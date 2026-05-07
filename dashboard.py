@@ -2,6 +2,7 @@ import base64
 import os
 import pandas as pd
 import numpy as np
+import textwrap
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output
 
@@ -241,6 +242,18 @@ app.layout = html.Div(style={
                 )
             ], style={"flex": "1", "minWidth": "200px"}),
 
+            # ── NOVO: Filtro de Município ──────────────────────────────────
+            html.Div([
+                html.Label("MUNICÍPIO", style=_label_style()),
+                dcc.Dropdown(
+                    id="filter-municipio",
+                    options=[{"label": "Todos os municípios", "value": "TODOS"}],
+                    value="TODOS",
+                    clearable=False,
+                    style=_dropdown_style(),
+                )
+            ], style={"flex": "1", "minWidth": "220px"}),
+
             html.Div([
                 html.Label("COMUNIDADE", style=_label_style()),
                 dcc.Dropdown(
@@ -337,31 +350,54 @@ app.layout = html.Div(style={
 # 🔹 CALLBACKS
 # =========================
 
+# ── Atualiza municípios com base no estado selecionado ──────────────────
+@app.callback(
+    Output("filter-municipio", "options"),
+    Output("filter-municipio", "value"),
+    Input("filter-estado", "value"),
+)
+def update_municipios(estado):
+    df_t = df if estado == "TODOS" else df[df["ESTADO"] == estado]
+    opts = [{"label": "Todos os municípios", "value": "TODOS"}] + \
+           [{"label": m, "value": m} for m in sorted(df_t["MUNICIPIO"].unique())]
+    return opts, "TODOS"
+
+
+# ── Atualiza comunidades com base no estado E município selecionados ─────
 @app.callback(
     Output("filter-comunidade", "options"),
     Output("filter-comunidade", "value"),
     Input("filter-estado", "value"),
+    Input("filter-municipio", "value"),
 )
-def update_comunidades(estado):
-    df_t = df if estado == "TODOS" else df[df["ESTADO"] == estado]
+def update_comunidades(estado, municipio):
+    df_t = df.copy()
+    if estado != "TODOS":
+        df_t = df_t[df_t["ESTADO"] == estado]
+    if municipio != "TODOS":
+        df_t = df_t[df_t["MUNICIPIO"] == municipio]
     opts = [{"label": "Todas as comunidades", "value": "TODOS"}] + \
            [{"label": c, "value": c} for c in sorted(df_t["COMUNIDADE"].unique())]
     return opts, "TODOS"
 
 
+# ── Atualiza mapa e cards com todos os três filtros ──────────────────────
 @app.callback(
     Output("mapa", "figure"),
     Output("stat-cards", "children"),
     Output("map-subtitle", "children"),
     Input("filter-estado", "value"),
+    Input("filter-municipio", "value"),
     Input("filter-comunidade", "value"),
 )
-def update_dashboard(estado, comunidade):
+def update_dashboard(estado, municipio, comunidade):
 
     # ── Apply filters ───────────────────────────
     df_f = df.copy()
     if estado != "TODOS":
         df_f = df_f[df_f["ESTADO"] == estado]
+    if municipio != "TODOS":
+        df_f = df_f[df_f["MUNICIPIO"] == municipio]
     if comunidade != "TODOS":
         df_f = df_f[df_f["COMUNIDADE"] == comunidade]
 
@@ -426,6 +462,9 @@ def update_dashboard(estado, comunidade):
         ]))
 
     # ── Map traces ──────────────────────────────
+    df_f["SITUAÇÃO"] = df_f["SITUAÇÃO"].apply(
+    lambda x: "<br>".join(textwrap.wrap(str(x), width=25))
+    )
     traces = []
     for func_val, group in df_f.groupby("FUNCIONANDO"):
         color = COLOR_MAP.get(func_val, "#626567")
