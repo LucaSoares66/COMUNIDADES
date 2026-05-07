@@ -431,6 +431,7 @@ def update_dashboard(estado, comunidade):
         color = COLOR_MAP.get(func_val, "#626567")
         customdata = list(zip(
             group["COMUNIDADE"],
+            group['Geolocalizador'],
             group["MUNICIPIO"],
             group["ESTADO"],
             group["SITUAÇÃO"],
@@ -445,10 +446,11 @@ def update_dashboard(estado, comunidade):
             customdata=customdata,
             hovertemplate=(
                 "<b>%{customdata[0]}</b><br>"
-                "Município: %{customdata[1]}<br>"
-                "Estado: %{customdata[2]}<br>"
-                "Situação: %{customdata[3]}<br>"
-                "Funcionando: %{customdata[4]}"
+                "Precisão: %{customdata[1]}<br>"
+                "Município: %{customdata[2]}<br>"
+                "Estado: %{customdata[3]}<br>"
+                "Situação: %{customdata[4]}<br>"
+                "Funcionando: %{customdata[5]}"
                 "<extra></extra>"
             ),
         ))
